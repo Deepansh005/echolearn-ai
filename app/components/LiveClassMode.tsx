@@ -15,14 +15,35 @@ const signLanguageMap: Record<string, string> = {
   c: "https://upload.wikimedia.org/wikipedia/commons/e/e3/Sign_language_C.svg",
   d: "https://upload.wikimedia.org/wikipedia/commons/0/06/Sign_language_D.svg",
   e: "https://upload.wikimedia.org/wikipedia/commons/c/cd/Sign_language_E.svg",
+  f: "https://upload.wikimedia.org/wikipedia/commons/8/8f/Sign_language_F.svg",
+  g: "https://upload.wikimedia.org/wikipedia/commons/d/d9/Sign_language_G.svg",
+  h: "https://upload.wikimedia.org/wikipedia/commons/9/97/Sign_language_H.svg",
+  i: "https://upload.wikimedia.org/wikipedia/commons/1/10/Sign_language_I.svg",
+  j: "https://upload.wikimedia.org/wikipedia/commons/b/b1/Sign_language_J.svg",
+  k: "https://upload.wikimedia.org/wikipedia/commons/9/97/Sign_language_K.svg",
+  l: "https://upload.wikimedia.org/wikipedia/commons/d/d2/Sign_language_L.svg",
+  m: "https://upload.wikimedia.org/wikipedia/commons/c/c4/Sign_language_M.svg",
+  n: "https://upload.wikimedia.org/wikipedia/commons/e/e6/Sign_language_N.svg",
+  o: "https://upload.wikimedia.org/wikipedia/commons/e/e0/Sign_language_O.svg",
+  p: "https://upload.wikimedia.org/wikipedia/commons/0/08/Sign_language_P.svg",
+  q: "https://upload.wikimedia.org/wikipedia/commons/3/34/Sign_language_Q.svg",
+  r: "https://upload.wikimedia.org/wikipedia/commons/3/3d/Sign_language_R.svg",
+  s: "https://upload.wikimedia.org/wikipedia/commons/3/3f/Sign_language_S.svg",
+  t: "https://upload.wikimedia.org/wikipedia/commons/1/13/Sign_language_T.svg",
+  u: "https://upload.wikimedia.org/wikipedia/commons/7/7c/Sign_language_U.svg",
+  v: "https://upload.wikimedia.org/wikipedia/commons/c/ca/Sign_language_V.svg",
+  w: "https://upload.wikimedia.org/wikipedia/commons/8/83/Sign_language_W.svg",
+  x: "https://upload.wikimedia.org/wikipedia/commons/b/b7/Sign_language_X.svg",
+  y: "https://upload.wikimedia.org/wikipedia/commons/1/1d/Sign_language_Y.svg",
+  z: "https://upload.wikimedia.org/wikipedia/commons/0/0a/Sign_language_Z.svg",
 };
 
 const gestureToTextMap: Record<string, string> = {
   Thumb_Up: "Yes, I understand.",
   Thumb_Down: "No, I am confused.",
-  Open_Palm: "Hello! / Stop.",
+  Open_Palm: "Hello!",
   Victory: "May I go to the restroom?",
-  Closed_Fist: "I am done writing.",
+  Closed_Fist: "Stop / Please wait.",
   Pointing_Up: "I have a question.",
   ILoveYou: "Thank you, Teacher!",
 };
@@ -141,7 +162,7 @@ export default function LiveClassMode() {
           {
             baseOptions: {
               modelAssetPath: "/gesture_recognizer.task",
-              delegate: "CPU",
+              delegate: "GPU",
             },
             runningMode: "VIDEO",
             numHands: 1,
@@ -174,8 +195,8 @@ export default function LiveClassMode() {
       const canvas = canvasRef.current;
       const now = Date.now();
 
-      // THROTTLE: Only process every 150ms (~6-7 FPS) to save CPU
-      if (now - lastPredictionTimeRef.current < 150) {
+      // THROTTLE: Process every 100ms (~10 FPS) for better responsiveness
+      if (now - lastPredictionTimeRef.current < 100) {
         animationFrameId = requestAnimationFrame(predictWebcam);
         return;
       }
@@ -214,7 +235,7 @@ export default function LiveClassMode() {
                 gestureHoldCounterRef.current = 0;
               }
 
-              if (gestureHoldCounterRef.current > 3) {
+              if (gestureHoldCounterRef.current > 1) {
                 if (rawGesture !== lastSpokenGestureRef.current && gestureToTextMap[rawGesture]) {
                   const message = gestureToTextMap[rawGesture];
                   setStudentMessage(message);
@@ -367,7 +388,7 @@ export default function LiveClassMode() {
 
                 if (newState) {
                   // Simulate Teacher Speech
-                  const demoText = "Hello class! Today we will learn about photosynthesis.";
+                  const demoText = "Hello class! Today we will explore the fascinating world of photosynthesis. Photosynthesis is the incredible process used by plants to transform sunlight into life-giving energy. They use a special green pigment called chlorophyll, which acts like a solar panel for the plant. When sunlight hits the leaves, it powers a chemical reaction that converts carbon dioxide and water into glucose and oxygen. This glucose fuels the plant's growth, allowing it to produce flowers, fruit, and seeds. But the most amazing byproduct is oxygen, which is released back into the atmosphere. This is the very oxygen that you and I breathe every single moment. Without this cycle, Earth would be a barren, lifeless rock. So, the next time you see a tree, remember that it is hard at work keeping us alive. Nature has a perfect balance, and photosynthesis is the key to that balance. We must protect our forests to ensure this cycle continues forever. Do you have any questions about how this works?";
                   setTranscript(demoText);
                   setWords([]); // Reset signs initially
 
@@ -387,13 +408,13 @@ export default function LiveClassMode() {
                       if (event.name === 'word') {
                         // ROBUST SYNC: Use charIndex to find exactly where we are
                         const charIndex = event.charIndex;
-                        // Get text up to this point
                         const textSoFar = demoText.slice(0, charIndex);
-                        // Count words so far (split by space and filter empty)
-                        const wordCount = textSoFar.split(" ").length;
+                        // Using regex to handle multiple spaces correctly
+                        const wordCount = textSoFar.trim().split(/\s+/).length + (textSoFar.endsWith(" ") ? 0 : 0);
 
-                        // Update state to show all words up to current
-                        setWords(allWords.slice(0, wordCount));
+                        // Ensure we don't go out of bounds
+                        const safeCount = Math.min(wordCount, allWords.length);
+                        setWords(allWords.slice(0, safeCount));
                       }
                     };
 
@@ -425,9 +446,9 @@ export default function LiveClassMode() {
             <div className="grid grid-cols-1 gap-2 text-[11px] text-zinc-300">
               <div className="bg-white/5 p-2 rounded flex items-center justify-between border border-white/5"><span>👍 Yes, I understand.</span></div>
               <div className="bg-white/5 p-2 rounded flex items-center justify-between border border-white/5"><span>👎 No, I am confused.</span></div>
-              <div className="bg-white/5 p-2 rounded flex items-center justify-between border border-white/5"><span>🖐️ Hello! / Stop.</span></div>
+              <div className="bg-white/5 p-2 rounded flex items-center justify-between border border-white/5"><span>🖐️ Hello!</span></div>
+              <div className="bg-white/5 p-2 rounded flex items-center justify-between border border-white/5"><span>✊ Stop.</span></div>
               <div className="bg-white/5 p-2 rounded flex items-center justify-between border border-white/5"><span>✌️ May I go to restroom?</span></div>
-              <div className="bg-white/5 p-2 rounded flex items-center justify-between border border-white/5"><span>✊ I am done writing.</span></div>
               <div className="bg-white/5 p-2 rounded flex items-center justify-between border border-white/5"><span>☝️ I have a question.</span></div>
               <div className="bg-white/5 p-2 rounded flex items-center justify-between border border-white/5"><span>🤟 Thank you, Teacher!</span></div>
             </div>
