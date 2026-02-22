@@ -1,5 +1,5 @@
 # EchoLearn AI 🧠
-> An adaptive, inclusive classroom system powered by Gesture Recognition & Speech-to-Text..
+> An adaptive, inclusive classroom system powered by Gesture Recognition & Speech-to-Text..,
 
 ## 🚀 Features
 * **Live Class Mode:** Speech-to-Sign Language translation for Deaf accessibility.
